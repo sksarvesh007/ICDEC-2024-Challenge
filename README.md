@@ -16,6 +16,4 @@ This high imbalance might lead to model bias which might not work great with the
 
 ### YOLO MODEL WITH CLASS IMBALANCE
 
-First of all , lets see how does the model performs with the class imbalances present in the dataset through the confusion matrix which might be the best way right now to judge if model is performing well or not!
-
-If the image is not visible , here's the link for the excalidraw notebook with other comparisions as well : [Excalidraw_notebook ](https://excalidraw.com/#json=N0QYiNPK9x-QPxrEU3Izt,em0B7E7QtfhwAaLFPTn84w)
+![Untitled-2024-07-10-1027](https://github.com/sksarvesh007/ICDEC-2024-Challenge/assets/118449813/409da927-3eee-43e6-9326-cd75e97d2886)
