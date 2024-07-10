@@ -42,7 +42,6 @@ def bbox_to_yolo(bbox, img_width, img_height):
     height /= img_height
     return [str(class_id), f'{x_centre:.6f}', f'{y_centre:.6f}', f'{width:.6f}', f'{height:.6f}']
 
-# Check if two bounding boxes overlap
 def check_overlap(bbox1, bbox2):
     x1_min, y1_min, x1_max, y1_max = bbox1
     x2_min, y2_min, x2_max, y2_max = bbox2
