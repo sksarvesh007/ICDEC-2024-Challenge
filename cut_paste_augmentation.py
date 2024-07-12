@@ -49,63 +49,40 @@ def check_overlap(bbox1, bbox2):
         return False
     return True
 
-# Find the height of a matching class in the second image
-def find_matching_class_height(bboxes, class_id):
-    for bbox in bboxes:
-        if bbox[0] == class_id:
-            return (bbox[2] + bbox[3]) // 2
-    return None
-
 # Cut-paste augmentation function with poison blending
-def cut_paste_augmentation(image1, bboxes1, image2, bboxes2, alpha=0.8):
+def cut_paste_augmentation(image1, bbox, image2, bboxes2, alpha=0.8):
     img1 = image1.copy()
     img2 = image2.copy()
-    for bbox in bboxes1:
-        class_id, x1, y1, x2, y2 = bbox
-        patch = img1[y1:y2, x1:x2]
+    
+    class_id, x1, y1, x2, y2 = bbox
+    patch = img1[y1:y2, x1:x2]
 
-        # Find the height level of the same class object in image2
-        matching_height = find_matching_class_height(bboxes2, class_id)
-        if matching_height is not None:
-            patch_height = y2 - y1
-            new_y1 = max(0, matching_height - patch_height // 2)
-            new_y2 = new_y1 + patch_height
-            if new_y2 > img2.shape[0]:
-                new_y1 -= (new_y2 - img2.shape[0])
-                new_y2 = img2.shape[0]
-        else:
-            new_y1 = np.random.randint(0, img2.shape[0] - (y2 - y1))
-            new_y2 = new_y1 + (y2 - y1)
+    # Try placing the patch at a random x position until it does not overlap
+    max_attempts = 1000
+    placed = False
+    for _ in range(max_attempts):
+        new_x1 = np.random.randint(0, img2.shape[1] - (x2 - x1))
+        new_y1 = np.random.randint(0, img2.shape[0] - (y2 - y1))
+        new_x2 = new_x1 + (x2 - x1)
+        new_y2 = new_y1 + (y2 - y1)
 
-        # Check if the patch width exceeds the available width in image2
-        max_patch_width = img2.shape[1] - (x2 - x1)
-        if x2 - x1 > max_patch_width:
-            continue  # Skip this patch if it's too wide for image2
-
-        # Try placing the patch at a random x position until it does not overlap
-        max_attempts = 1000
-        placed = False
-        for _ in range(max_attempts):
-            new_x1 = np.random.randint(0, img2.shape[1] - (x2 - x1))
-            new_x2 = new_x1 + (x2 - x1)
-
-            overlap = False
-            for existing_bbox in bboxes2:
-                if check_overlap((new_x1, new_y1, new_x2, new_y2), existing_bbox[1:]):
-                    overlap = True
-                    break
-
-            if not overlap:
-                # Blend the patch into the image
-                img2[new_y1:new_y2, new_x1:new_x2] = cv2.addWeighted(
-                    img2[new_y1:new_y2, new_x1:new_x2], 1 - alpha, patch, alpha, 0
-                )
-                bboxes2.append((class_id, new_x1, new_y1, new_x2, new_y2))
-                placed = True
+        overlap = False
+        for existing_bbox in bboxes2:
+            if check_overlap((new_x1, new_y1, new_x2, new_y2), existing_bbox[1:]):
+                overlap = True
                 break
 
-        if not placed:
-            tqdm.write(f"Failed to place patch for bbox {bbox} without overlap after {max_attempts} attempts.")
+        if not overlap:
+            # Blend the patch into the image
+            img2[new_y1:new_y2, new_x1:new_x2] = cv2.addWeighted(
+                img2[new_y1:new_y2, new_x1:new_x2], 1 - alpha, patch, alpha, 0
+            )
+            bboxes2.append((class_id, new_x1, new_y1, new_x2, new_y2))
+            placed = True
+            break
+
+    if not placed:
+        tqdm.write(f"Failed to place patch for bbox {bbox} without overlap after {max_attempts} attempts.")
 
     return img2, bboxes2
 
@@ -115,50 +92,58 @@ def apply_augmentation_to_dataset(dataset_root_dir, num_pairs=3000):
     labels_dir = os.path.join(dataset_root_dir, 'labels', 'train')
     image_files = [f for f in os.listdir(images_dir) if f.endswith('.jpg') or f.endswith('.jpeg')]
     
-    if len(image_files) < 2:
+    if len(image_files) < 5:
         print("Error: There are not enough images in the directory to perform augmentation.")
         return
     
     augmented_count = 0
     i = 0
     pbar = tqdm(total=num_pairs)
-    while augmented_count < num_pairs and i < len(image_files) - 1:
+    while augmented_count < num_pairs and i < len(image_files) - 5:
         image1_path = os.path.join(images_dir, image_files[i])
-        image2_path = os.path.join(images_dir, image_files[i + 1])
+        image_paths = [os.path.join(images_dir, image_files[i + j + 1]) for j in range(4)]
         
         annotations1_path = os.path.join(labels_dir, image_files[i].replace('.jpg', '.txt').replace('.jpeg', '.txt'))
-        annotations2_path = os.path.join(labels_dir, image_files[i + 1].replace('.jpg', '.txt').replace('.jpeg', '.txt'))
+        annotation_paths = [os.path.join(labels_dir, image_files[i + j + 1].replace('.jpg', '.txt').replace('.jpeg', '.txt')) for j in range(4)]
         
-        output_image_path = os.path.join(images_dir, f'augmented_{i}_{i + 1}.jpg')
-        output_annotations_path = os.path.join(labels_dir, f'augmented_{i}_{i + 1}.txt')
+        output_image_paths = [os.path.join(images_dir, f'augmented_{i}_{i + j + 1}.jpg') for j in range(4)]
+        output_annotation_paths = [os.path.join(labels_dir, f'augmented_{i}_{i + j + 1}.txt') for j in range(4)]
         
         try:
             image1 = cv2.imread(image1_path)
-            image2 = cv2.imread(image2_path)
+            images = [cv2.imread(image_path) for image_path in image_paths]
 
             annotations1 = load_yolo_annotations(annotations1_path)
-            annotations2 = load_yolo_annotations(annotations2_path)
+            annotations = [load_yolo_annotations(annotation_path) for annotation_path in annotation_paths]
 
             img1_height, img1_width = image1.shape[:2]
-            img2_height, img2_width = image2.shape[:2]
+            img_heights_widths = [(image.shape[:2]) for image in images]
 
-            bboxes1 = [yolo_to_bbox(ann, img1_width, img1_height) for ann in annotations1]
-            bboxes2 = [yolo_to_bbox(ann, img2_width, img2_height) for ann in annotations2]
+            bboxes1_class0 = [yolo_to_bbox(ann, img1_width, img1_height) for ann in annotations1 if int(ann[0]) == 0]
+            bboxes1_non_class0 = [yolo_to_bbox(ann, img1_width, img1_height) for ann in annotations1 if int(ann[0]) != 0]
+            bboxes_list = [[yolo_to_bbox(ann, img_width, img_height) for ann in anns] for anns, (img_height, img_width) in zip(annotations, img_heights_widths)]
 
-            augmented_image, augmented_bboxes = cut_paste_augmentation(image1, bboxes1, image2, bboxes2, alpha=0.8)
-            augmented_annotations = [bbox_to_yolo(bbox, img2_width, img2_height) for bbox in augmented_bboxes]
+            for j in range(4):
+                img, bboxes = images[j], bboxes_list[j]
+                bboxes_class0 = [bbox for bbox in bboxes if bbox[0] == 0]
+                bboxes_non_class0 = [bbox for bbox in bboxes if bbox[0] != 0]
 
-            cv2.imwrite(output_image_path, augmented_image)
-            save_yolo_annotations(output_annotations_path, augmented_annotations)
+                for bbox in bboxes1_non_class0:
+                    img, bboxes = cut_paste_augmentation(image1, bbox, img, bboxes_class0 + bboxes_non_class0, alpha=0.8)
+                
+                augmented_annotations = [bbox_to_yolo(bbox, img_heights_widths[j][1], img_heights_widths[j][0]) for bbox in bboxes]
 
-            augmented_count += 1
-            i += 2  # Move to the next pair of images
+                cv2.imwrite(output_image_paths[j], img)
+                save_yolo_annotations(output_annotation_paths[j], augmented_annotations)
+
+            augmented_count += 4
+            i += 5  # Move to the next set of images
         
         except FileNotFoundError as e:
-            tqdm.write(f"Error: {e}. Skipping this pair of images.")
-            i += 2  # Move to the next pair of images
+            tqdm.write(f"Error: {e}. Skipping this set of images.")
+            i += 5  # Move to the next set of images
         
-        pbar.update(1)
+        pbar.update(4)
 
     pbar.close()
 

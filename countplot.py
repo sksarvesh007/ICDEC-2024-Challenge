@@ -45,7 +45,7 @@ def plot_class_counts(class_counts, folder_name, save_path=None):
     if save_path:
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        save_file = os.path.join(save_path, f'class_counts_{folder_name.lower()}.png')
+        save_file = os.path.join(save_path, f'after_aug_class_counts_{folder_name.lower()}.png')
         plt.savefig(save_file)
         print(f"Countplot saved as {save_file}")
     else:

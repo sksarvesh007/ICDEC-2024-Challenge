@@ -1,4 +1,4 @@
-path: /kaggle/input/yolo-obj
+path: /kaggle/input/icdec-data/dataset
 train: ../images/train
 val: ../images/val
 
