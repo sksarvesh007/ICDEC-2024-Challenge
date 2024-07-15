@@ -22,6 +22,20 @@ So after the train val split this is the final dataset directory which I worked 
 
 ---
 
+### FILE STRUCTURE 
+
+Let me explain the file and directory structure in this repo and what those files do one by one 
+
+1. `400 epochs` : this folder contains the results from the 400 epochs run on the raw dataset , the YOLO model used in this was the yolov8n
+2. `After augmentation model`: this folder contains the results with the model file of the yolov8n model trained for 400 epochs on the augmented dataset
+3. `graphs`: this folder contains the countplots of the train and val folder classes before and after the augmentation
+4. `image/README`: this folder contains the images used inside the readme file 
+4. 
+
+---
+
+
+
 ### CLASSES
 
 The total classes according to the given dataset were 14 , given as below :
@@ -82,7 +96,7 @@ Let me give you the basic over view of the cutpaste augmentation through the bas
 
 ![Cut-paste data augmentation process | Download Scientific Diagram](https://www.researchgate.net/publication/349526076/figure/fig2/AS:994362326540291@1614085861501/Cut-paste-data-augmentation-process.png)
 
-in this augmentation what we did was to select the classes cut them through their bounding boxes given in the first image , and then paste it inside the 2nd image , for the 2nd image to not look so unnatural what I did was to place the object in such a way that its relatively placed near the other objects 
+in this augmentation what we did was to select the classes cut them through their bounding boxes given in the first image , and then paste it inside the 2nd image , for the 2nd image to not look so unnatural what I did was to place the object in such a way that its relatively placed near the other objects
 
 for the images to blend with the other image , we did poisson blending , which basically makes the image look more natural and blended inside the 2nd image .
 
