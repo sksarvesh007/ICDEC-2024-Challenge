@@ -1,0 +1,6 @@
+matplotlib==3.8.1
+numpy==1.25.2
+opencv_contrib_python==4.8.1.78
+opencv_python==4.8.1.78
+tqdm==4.66.1
+ultralytics==8.1.47
