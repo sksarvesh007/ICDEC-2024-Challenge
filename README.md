@@ -22,19 +22,29 @@ So after the train val split this is the final dataset directory which I worked 
 
 ---
 
-### FILE STRUCTURE 
+### FILE STRUCTURE
 
-Let me explain the file and directory structure in this repo and what those files do one by one 
+Let me explain the file and directory structure in this repo and what those files do one by one
 
 1. `400 epochs` : this folder contains the results from the 400 epochs run on the raw dataset , the YOLO model used in this was the yolov8n
 2. `After augmentation model`: this folder contains the results with the model file of the yolov8n model trained for 400 epochs on the augmented dataset
 3. `graphs`: this folder contains the countplots of the train and val folder classes before and after the augmentation
-4. `image/README`: this folder contains the images used inside the readme file 
-4. 
+4. `image/README`: this folder contains the images used inside the readme file
+5. `runs/detect`: pls ignore this folder
+6. `app.py` : this file helps to label the classes on any video , just replace the video file path and then run the following code
+
+   ```python
+   python run app.py
+   ```
+7. `config.yaml` : this file is the configuration file for the yolo model if you want to run it locally
+8. `countplot.py`: this file is for making the countplto and saving it in the graphs folder.
+9. `cut_paste_augmentation.py` : this python file is for augmenting the dataset and save the respective annotations with     			correct file names .
+10. `directory.py` python file used to print out the directory structure
+11. `dataset.yaml` : used for finding the results locally
+12. `kaggle_config.yaml`: configuration file used for training the yolo model on the kaggle platform
+13. `val_split.py` python file used to split the dataset into train and validation randomly
 
 ---
-
-
 
 ### CLASSES
 
