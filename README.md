@@ -76,10 +76,14 @@ Some of the points which I could figure out for the low performance of the model
 
 ### DATA AUGMENTATION AND PREPROCESSING
 
-For the data augmentation part Due to the class imbalance I did the 
+For the data augmentation part due to the class imbalance I did the cut paste augmentation with poison blending
+
+Let me give you the basic over view of the cutpaste augmentation through the basic visualization
+
+![Cut-paste data augmentation process | Download Scientific Diagram](https://www.researchgate.net/publication/349526076/figure/fig2/AS:994362326540291@1614085861501/Cut-paste-data-augmentation-process.png)
+
+in this augmentation what we did was to select the classes cut them through their bounding boxes given in the first image , and then paste it inside the 2nd image , for the 2nd image to not look so unnatural what I did was to place the object in such a way that its relatively placed near the other objects 
+
+for the images to blend with the other image , we did poisson blending , which basically makes the image look more natural and blended inside the 2nd image .
 
 ---
-
-
-
-If the image is not visible or isnt clear, here's the link for the excalidraw notebook with other comparisions as well : [Excalidraw_notebook ](https://excalidraw.com/#json=N0QYiNPK9x-QPxrEU3Izt,em0B7E7QtfhwAaLFPTn84w)
